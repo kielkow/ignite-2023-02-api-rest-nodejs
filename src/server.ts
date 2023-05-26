@@ -1,9 +1,8 @@
-import 'dotenv/config'
-
 import fastify from 'fastify'
 import { randomUUID } from 'crypto'
 
 import { knex } from './database'
+import { env } from './env'
 
 interface ITransactionBody {
   title: string
@@ -63,4 +62,4 @@ app.post<{ Body: ITransactionBody }>('/transactions', {}, async (req, res) => {
   res.send(transaction)
 })
 
-app.listen({ port: 3333 }).then(() => console.log('[server is running]'))
+app.listen({ port: env.PORT }).then(() => console.log('[server is running]'))
