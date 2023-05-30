@@ -14,6 +14,6 @@ app.get('/status-database', () => {
   return knex('sqlite_schema').select('*')
 })
 
-app.register(transactionRoutes)
+app.register(transactionRoutes, { prefix: 'transactions' })
 
 app.listen({ port: env.PORT }).then(() => console.log('[server is running]'))
