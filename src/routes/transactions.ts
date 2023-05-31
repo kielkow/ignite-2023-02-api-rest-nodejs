@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import { FastifyInstance } from 'fastify'
 
 import { knex } from '../database'
+import { Tables } from 'knex/types/tables'
 
 interface ITransactionBody {
   title: string
@@ -16,25 +17,32 @@ interface ITransactionQueryString {
 }
 
 export async function transactionRoutes(app: FastifyInstance) {
-  app.get<{ Querystring: ITransactionQueryString }>('/', (req, res) => {
+  app.get<{ Querystring: ITransactionQueryString }>('/', async (req, res) => {
     const { title, amount } = req.query
 
+    let transactions: Tables['transactions'][] = []
+
     if (title && !amount) {
-      return knex('transactions').select('*').where('title', title)
+      transactions = await knex('transactions')
+        .select('*')
+        .where('title', title)
     }
-
-    if (amount && !title) {
-      return knex('transactions').select('*').where('amount', amount)
+    if (!title && amount) {
+      transactions = await knex('transactions')
+        .select('*')
+        .where('amount', amount)
     }
-
     if (title && amount) {
-      return knex('transactions').select('*').where({
+      transactions = await knex('transactions').select('*').where({
         title,
         amount,
       })
     }
+    if (!title && !amount) {
+      transactions = await knex('transactions').select('*')
+    }
 
-    return knex('transactions').select('*')
+    return { total: transactions.length, transactions }
   })
 
   app.post<{ Body: ITransactionBody }>('/', {}, async (req, res) => {
