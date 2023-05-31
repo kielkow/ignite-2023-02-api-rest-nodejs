@@ -45,6 +45,33 @@ export async function transactionRoutes(app: FastifyInstance) {
     return { total: transactions.length, transactions }
   })
 
+  app.get('/:id', async (req, res) => {
+    const paramSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    let id: string
+    try {
+      const params = paramSchema.parse(req.params)
+      id = params.id
+    } catch (error) {
+      return res.status(400).send(JSON.parse(String(error)))
+    }
+
+    const transaction: Tables['transactions'] | undefined = await knex(
+      'transactions',
+    )
+      .select('*')
+      .where('id', id)
+      .first()
+
+    if (!transaction) {
+      return res.status(400).send('Transaction not found')
+    }
+
+    return { transaction }
+  })
+
   app.post<{ Body: ITransactionBody }>('/', {}, async (req, res) => {
     const transactionBodySchema = z.object({
       title: z.string(),
