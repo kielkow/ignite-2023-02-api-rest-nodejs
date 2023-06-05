@@ -35,7 +35,7 @@ export async function transactionRoutes(app: FastifyInstance) {
     },
   )
 
-  app.get('/:id', async (req, res) => {
+  app.get('/:id', { preHandler: [checkSessionIdExists] }, async (req, res) => {
     const paramSchema = z.object({
       id: z.string().uuid(),
     })
@@ -52,23 +52,28 @@ export async function transactionRoutes(app: FastifyInstance) {
       'transactions',
     )
       .select('*')
-      .where('id', id)
+      .where({ id, session_id: req.cookies.sessionId })
       .first()
 
     if (!transaction) {
       return res.status(400).send('Transaction not found')
     }
 
-    return { transaction }
+    res.send({ transaction })
   })
 
-  app.get('/summary', async () => {
-    const summary = await knex('transactions')
-      .sum('amount', { as: 'amount' })
-      .first()
+  app.get(
+    '/summary',
+    { preHandler: [checkSessionIdExists] },
+    async (req, res) => {
+      const summary = await knex('transactions')
+        .sum('amount', { as: 'amount' })
+        .where({ session_id: req.cookies.sessionId })
+        .first()
 
-    return { summary }
-  })
+      res.send({ summary })
+    },
+  )
 
   app.post<{ Body: ITransactionBody }>('/', {}, async (req, res) => {
     const transactionBodySchema = z.object({
