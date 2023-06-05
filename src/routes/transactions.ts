@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
 import { FastifyInstance } from 'fastify'
+import { Tables } from 'knex/types/tables'
 
 import { knex } from '../database'
-import { Tables } from 'knex/types/tables'
+import { checkSessionIdExists } from '../middleware/check-session-id-exists'
 
 interface ITransactionBody {
   title: string
@@ -17,33 +18,22 @@ interface ITransactionQueryString {
 }
 
 export async function transactionRoutes(app: FastifyInstance) {
-  app.get<{ Querystring: ITransactionQueryString }>('/', async (req, res) => {
-    const { title, amount } = req.query
+  app.get<{ Querystring: ITransactionQueryString }>(
+    '/',
+    { preHandler: [checkSessionIdExists] },
+    async (req, res) => {
+      const options = {
+        ...req.query,
+        session_id: req.cookies.sessionId,
+      }
 
-    let transactions: Tables['transactions'][] = []
-
-    if (title && !amount) {
-      transactions = await knex('transactions')
+      const transactions: Tables['transactions'][] = await knex('transactions')
         .select('*')
-        .where('title', title)
-    }
-    if (!title && amount) {
-      transactions = await knex('transactions')
-        .select('*')
-        .where('amount', amount)
-    }
-    if (title && amount) {
-      transactions = await knex('transactions').select('*').where({
-        title,
-        amount,
-      })
-    }
-    if (!title && !amount) {
-      transactions = await knex('transactions').select('*')
-    }
+        .where(options)
 
-    return { total: transactions.length, transactions }
-  })
+      return { total: transactions.length, transactions }
+    },
+  )
 
   app.get('/:id', async (req, res) => {
     const paramSchema = z.object({
