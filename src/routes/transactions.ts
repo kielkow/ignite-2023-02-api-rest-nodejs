@@ -31,7 +31,7 @@ export async function transactionRoutes(app: FastifyInstance) {
         .select('*')
         .where(options)
 
-      return { total: transactions.length, transactions }
+      res.send({ total: transactions.length, transactions })
     },
   )
 
