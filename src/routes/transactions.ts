@@ -110,6 +110,6 @@ export async function transactionRoutes(app: FastifyInstance) {
       })
       .returning('*')
 
-    res.send(transaction)
+    res.status(201).send(transaction)
   })
 }
