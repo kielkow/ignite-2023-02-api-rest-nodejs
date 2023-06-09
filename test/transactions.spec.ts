@@ -68,3 +68,33 @@ test('user can get a transaction', async () => {
   expect(response.body.transaction).toBeTruthy()
   expect(response.body.transaction.id).toEqual(transactionId)
 })
+
+test('user can get transactions summary', async () => {
+  const transaction1 = await request(app.server).post('/transactions').send({
+    title: 'new_transaction',
+    amount: 4000,
+    type: 'credit',
+  })
+
+  const sessionId = transaction1.headers['set-cookie'][0]
+
+  const transaction2 = await request(app.server)
+    .post('/transactions')
+    .send({
+      title: 'new_transaction',
+      amount: 2000,
+      type: 'debit',
+    })
+    .set('Cookie', sessionId)
+
+  const amount = transaction1.body[0].amount + transaction2.body[0].amount
+
+  const response = await request(app.server)
+    .get('/transactions/summary')
+    .set('Cookie', sessionId)
+
+  expect(response.statusCode).toEqual(200)
+  expect(response.body).toBeTruthy()
+  expect(response.body.summary).toBeTruthy()
+  expect(response.body.summary.amount).toEqual(amount)
+})
