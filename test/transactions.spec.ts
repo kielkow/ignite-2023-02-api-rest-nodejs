@@ -41,6 +41,12 @@ describe('TRANSACTIONS ROUTES', () => {
     expect(response.body).toBeTruthy()
     expect(response.body.total).toEqual(1)
     expect(response.body.transactions.length).toEqual(1)
+    expect(response.body.transactions).toEqual([
+      expect.objectContaining({
+        title: 'new_transaction',
+        amount: 1000,
+      }),
+    ])
   })
 
   it('should be able get a transaction', async () => {
