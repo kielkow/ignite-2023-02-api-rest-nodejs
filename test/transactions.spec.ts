@@ -31,7 +31,7 @@ describe('TRANSACTIONS ROUTES', () => {
         type: 'credit',
       })
 
-    const sessionId = responseCreateTransaction.headers['set-cookie'][0]
+    const sessionId = responseCreateTransaction.get('Set-Cookie')
 
     const response = await request(app.server)
       .get('/transactions')
@@ -52,7 +52,7 @@ describe('TRANSACTIONS ROUTES', () => {
         type: 'credit',
       })
 
-    const sessionId = responseCreateTransaction.headers['set-cookie'][0]
+    const sessionId = responseCreateTransaction.get('Set-Cookie')
 
     const { body: transactionsData } = await request(app.server)
       .get('/transactions')
@@ -77,7 +77,7 @@ describe('TRANSACTIONS ROUTES', () => {
       type: 'credit',
     })
 
-    const sessionId = transaction1.headers['set-cookie'][0]
+    const sessionId = transaction1.get('Set-Cookie')
 
     const transaction2 = await request(app.server)
       .post('/transactions')
